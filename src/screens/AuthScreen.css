@@ -1,0 +1,141 @@
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #f5f7fa;
+    padding: 20px;
+  }
+  
+  .auth-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+  
+  .auth-card h2 {
+    margin-bottom: 20px;
+    color: #2d3748;
+  }
+  
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+  }
+  
+  .form-group label {
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #4a5568;
+  }
+  
+  .form-group input {
+    padding: 12px 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+  }
+  
+  .form-group input:focus {
+    outline: none;
+    border-color: #4299e1;
+  }
+  
+  .auth-button {
+    background: #4299e1;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .auth-button:hover {
+    background: #3182ce;
+  }
+  
+  .auth-button:disabled {
+    background: #a0aec0;
+    cursor: not-allowed;
+  }
+  
+  .toggle-auth {
+    background: none;
+    border: none;
+    color: #4299e1;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+  }
+  
+  .toggle-auth:hover {
+    text-decoration: underline;
+  }
+  
+  .toggle-auth:disabled {
+    color: #a0aec0;
+    cursor: not-allowed;
+  }
+  
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+    color: #718096;
+  }
+  
+  .auth-divider::before,
+  .auth-divider::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+  .auth-divider span {
+    padding: 0 10px;
+  }
+  
+  .google-auth {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .error-message {
+    color: #e53e3e;
+    background: #fff5f5;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  
+  .loading-spinner {
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top: 3px solid #4299e1;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
