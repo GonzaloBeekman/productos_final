@@ -26,7 +26,7 @@ const ProfileEditor = () => {
           return;
         }
 
-        const response = await axios.get('http://gestionproductos/obtenerdatos.php', {
+        const response = await axios.get('https://gestionproducto.alwaysdata.net/obtenerdatos.php', {
           headers: {
             'Authorization': `Bearer ${user.token}`
           }
@@ -74,7 +74,7 @@ const ProfileEditor = () => {
         return;
       }
     
-      const response = await axios.put('http://gestionproductos/actualizadatos.php',
+      const response = await axios.put('https://gestionproducto.alwaysdata.net/actualizadatos.php',
         {
           id: user.id,
           nombre: userData.nombre, 

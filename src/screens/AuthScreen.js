@@ -46,7 +46,7 @@ export default function AuthScreen() {
       }
 
       const endpoint = isLogin ? 'login' : 'register';
-      const response = await fetch('http://localhost/auth.php', {
+      const response = await fetch('https://gestionproducto.alwaysdata.net/auth.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ export default function AuthScreen() {
         googleId: decoded.sub
       }));
 
-      const backendResponse = await fetch('http://localhost/auth.php', {
+      const backendResponse = await fetch('https://gestionproducto.alwaysdata.net/auth.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -199,7 +199,7 @@ export default function AuthScreen() {
         
         {/* Login con Google */}
         <div className="google-auth">
-          <GoogleOAuthProvider clientId="591643858079-0eefcl6i3srrtdh2jpmp97mqmqv8hu0b.apps.googleusercontent.com">
+          <GoogleOAuthProvider clientId="1023818518338-i1elg9c337ump0otsdv4c1nsaaea86bk.apps.googleusercontent.com">
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={handleGoogleError}
