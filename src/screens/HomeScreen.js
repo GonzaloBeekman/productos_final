@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import ProductCard from './ProductCard';
 import './HomeScreen.css';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost/api.php';
+const API_URL = process.env.REACT_APP_API_URL || 'http://gestionproductos/api.php';
 
 const HomeScreen = () => {
   const [productos, setProductos] = useState([]);
