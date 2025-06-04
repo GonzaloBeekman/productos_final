@@ -3,8 +3,9 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background: #f5f7fa;
+    background:  #fae81a;
     padding: 20px;
+    flex-direction: column;
   }
   
   .auth-card {
@@ -139,3 +140,17 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
+
+  .titulo {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 30px;
+  color: #2d3748;
+  font-weight: 900;
+  background: white;
+  padding: 10px 20px;
+  border: 3px solid #2d3748;
+  border-radius: 8px;
+  display: inline-block;
+  box-shadow: 4px 4px 0 #2d3748;
+}

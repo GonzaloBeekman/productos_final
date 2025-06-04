@@ -13,6 +13,7 @@ const HomeScreen = () => {
     precio: '',
     descripcion: '',
     user_email: '',
+    stock: '',
   });
   const [editandoId, setEditandoId] = useState(null);
   const [userEmail, setUserEmail] = useState('');
@@ -24,6 +25,8 @@ const HomeScreen = () => {
   const [activeTab, setActiveTab] = useState("ventas");
   const [carrito, setCarrito] = useState([]);
   const [busqueda, setBusqueda] = useState("");
+  const [stock, setStock] = useState(null)
+   const token = localStorage.getItem('token');
 
   const getAuthToken = () => {
     const userData = localStorage.getItem('user');
@@ -92,6 +95,7 @@ const HomeScreen = () => {
   const validarFormulario = () => {
     if (!form.nombre.trim()) return "Nombre es requerido";
     if (isNaN(parseFloat(form.precio))) return "Precio debe ser un número";
+    if (!form.stock || isNaN(parseInt(form.stock))) return "Stock debe ser un número";
     return null;
   };
 
@@ -111,6 +115,7 @@ const HomeScreen = () => {
         nombre: form.nombre,
         precio: parseFloat(form.precio),
         descripcion: form.descripcion,
+        stock: parseInt(form.stock),
         user_email: userEmail
       }, {
         headers: {
@@ -136,7 +141,8 @@ const HomeScreen = () => {
         id: editandoId,
         nombre: form.nombre,
         precio: parseFloat(form.precio),
-        descripcion: form.descripcion
+        descripcion: form.descripcion,
+       stock: parseInt(form.stock)
       }, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -189,18 +195,86 @@ const HomeScreen = () => {
     producto.nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
   const comprarProducto = (producto) => {
-    setCarrito([...carrito, producto]);
-    alert("Producto agregado al carrito");
+  if (producto.stock > 0) {
+    // Buscar si ya está en el carrito
+    const index = carrito.findIndex(p => p.id === producto.id);
+    if (index !== -1) {
+      // Incrementar cantidad si no supera stock
+      if ((carrito[index].cantidad || 1) < producto.stock) {
+        const nuevoCarrito = [...carrito];
+        nuevoCarrito[index].cantidad = (nuevoCarrito[index].cantidad || 1) + 1;
+        setCarrito(nuevoCarrito);
+        alert(`Cantidad incrementada para "${producto.nombre}".`);
+      } else {
+        alert("No hay suficiente stock para aumentar la cantidad.");
+      }
+    } else {
+      // Agregar nuevo con cantidad 1
+      setCarrito(prev => [...prev, {...producto, cantidad: 1}]);
+      alert(`"${producto.nombre}" agregado al carrito.`);
+    }
+  } else {
+    alert("Stock agotado. Este producto no tiene stock disponible.");
   }
+};
+const obtenerProductos = async () => {
+  try {
+    const response = await fetch("https://gestionproducto.alwaysdata.net/api.php?accion=confirmar_compra");
+    const data = await response.json();
+    setProductos(data); // Asegurate que tenés un estado `productos`
+  } catch (error) {
+    console.error("Error al obtener productos:", error);
+  }
+};
 
-  const eliminarDelCarrito = (index) => {
-    const nuevoCarrito = [...carrito];
-    nuevoCarrito.splice(index, 1);
-    setCarrito(nuevoCarrito);
-  };
-  
- 
-  return (
+
+   const eliminarDelCarrito = (index) => {
+     const nuevoCarrito = [...carrito];
+     nuevoCarrito.splice(index, 1);
+     setCarrito(nuevoCarrito);
+   };
+   
+  function normalizarTexto(texto) {
+  return texto
+    .toLowerCase()
+    .normalize("NFD") // sacar tildes
+    .replace(/[\u0300-\u036f]/g, "") // eliminar acentos
+    .replace(/[^a-zA-Z0-9 ]/g, "") // eliminar símbolos
+    .trim();
+}
+const patronesMalasPalabras = [
+  /p+u+t+[o@a]+/,
+  /m+i+e+r+d+a+/,
+  /i+d+i+[@o]+t+a+/,
+  /h+d+p+/,
+  /m+a+l+d+i+t+[o@a]/,
+  /g+i+l+i+p+[@o]+l+l+a+s*/,
+  /v+e+r+g+a+/,
+  /v+e+r+g+o+t+a/,
+  /P+r+o+s+t+i+t+u+t+a+/,
+  /p+i+j+a+/,
+  /b+o+l+u+d+[o@a]/,
+  /f+o+r+r+[o@a]+/,
+  /s+o+r+e+t+e+/,
+  /c+u+l+[o@a]/,
+  /c+u+l+o+n+a/,
+  /z+o+r+r+a+/,
+  /t+a+r+a+d+[o@a]/,
+  /i+m+b+e+c+i+l+/,
+  /c+a+b+r+[oa@]+n+/,
+  /t+r+o+l+[oa@]+/,
+  /c+[@o]+n+c+h+a+/,
+  /c+o+n+c+h+i+t+a+/,
+  /c+o+n+c+h+i+t+a+s+/,
+  /p+e+r+d+i+d+a+/,
+];
+
+function contieneMalasPalabras(texto) {
+  const limpio = normalizarTexto(texto);
+  return patronesMalasPalabras.some((patron) => patron.test(limpio));
+}
+
+return (
     <div className="container">
       <div className="menu-horizontal">
         {permiso === '1' && (
@@ -217,14 +291,13 @@ const HomeScreen = () => {
         >
           Ventas de Productos
         </span>
-  
+         <span className="dropdown-link" onClick={() => setActiveTab("carrito")}>
+              🛒 Carrito ({carrito.length})
+            </span>
         <div className="menu-item perfil-dropdown">
           Perfil ▾
           <div className="dropdown-content">
             <Link to="/perfil" className="dropdown-link">Editar Perfil</Link>
-            <span className="dropdown-link" onClick={() => setActiveTab("carrito")}>
-              🛒 Carrito ({carrito.length})
-            </span>
             <span className="dropdown-link logout" onClick={handleLogout}>
               Cerrar sesión ({userEmail})
             </span>
@@ -255,6 +328,13 @@ const HomeScreen = () => {
                 value={form.precio}
                 onChange={(e) => setForm({ ...form, precio: e.target.value })}
                 type="number"
+              />
+              <input
+                className="form-input"
+                type="number"
+                value={form.stock}
+                onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                placeholder="Stock"
               />
               <textarea
                 className="form-textarea"
@@ -295,63 +375,81 @@ const HomeScreen = () => {
             {productos.length === 0 && !loading ? (
               <p className="empty-text">No hay productos registrados</p>
             ) : (
-              productos.map((item) => <ProductCard key={item.id} item={item} />)
+              productos.map((item) => <ProductCard key={item.id} item={item} setForm={setForm} setEditandoId={setEditandoId} eliminarProducto={eliminarProducto}/>)
             )}
           </div>
         </>
       )}
-  {activeTab === "carrito" && (
+ {activeTab === "carrito" && (
   <div className="carrito-container">
     <h2>Carrito de Compras</h2>
     {carrito.length === 0 ? (
       <p>No hay productos en el carrito.</p>
     ) : (
       <>
-    <ul>
-  {carrito.map((producto, index) => (
-    <li key={index}>
-      {producto.nombre} - ${parseFloat(producto.precio).toFixed(2)}{" "}
-      <button
-        onClick={() => eliminarDelCarrito(index)}
-        style={{
-          marginLeft: "10px",
-          background: "none",
-          border: "none",
-          color: "red",
-          fontSize: "1.2rem",
-          cursor: "pointer"
-        }}
-        title="Eliminar este producto"
-      >
-        ❌
-      </button>
-    </li>
-  ))}
-</ul>
-      <p className="total">
-        <strong>Total: $</strong>
-        {carrito.reduce((acc, prod) => acc + parseFloat(prod.precio), 0).toFixed(2)}
-      </p>
-      {carrito.length > 0 && (
-  <button
-    className="btn-confirm"
-    onClick={() => setActiveTab("confirmarCompra")}
-  >
-    Confirmar Compra
-  </button>
-)}
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Precio Unitario</th>
+              <th>Subtotal</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            {carrito.map((producto, index) => (
+              <tr key={index}>
+                <td>{producto.nombre}</td>
+                <td>{producto.cantidad || 1}</td>
+                <td>${parseFloat(producto.precio).toFixed(2)}</td>
+                <td>${((producto.cantidad || 1) * parseFloat(producto.precio)).toFixed(2)}</td>
+                <td className="actions">
+                  <button
+                    className="btn-del"
+                    onClick={() => eliminarDelCarrito(index)}
+                    title="Eliminar este producto"
+                  >
+                    ❌
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <p className="total">
+          <strong>Total: $</strong>
+          {carrito
+            .reduce(
+              (acc, prod) =>
+                acc + (prod.cantidad || 1) * parseFloat(prod.precio),
+              0
+            )
+            .toFixed(2)}
+        </p>
+
+        {carrito.length > 0 && (
+          <button
+            className="btn-confirm"
+            onClick={() => setActiveTab("confirmarCompra")}
+          >
+            Confirmar Compra
+          </button>
+        )}
       </>
     )}
+
     <button className="btn-clear-cart" onClick={() => setCarrito([])}>
-  Vaciar Carrito 
-</button>
+      Vaciar Carrito
+    </button>
   </div>
 )}
 
- {activeTab === "confirmarCompra" && (
+{activeTab === "confirmarCompra" && (
   <div className="confirmar-compra-container">
     <h2>Confirmar Compra</h2>
-    
+
     <ul>
       {carrito.map((producto, index) => (
         <li key={index}>
@@ -361,15 +459,50 @@ const HomeScreen = () => {
     </ul>
 
     <p>
-      <strong>Total:</strong> ${carrito.reduce((acc, prod) => acc + parseFloat(prod.precio), 0).toFixed(2)}
+      <strong>Total:</strong> $
+      {carrito
+        .reduce((acc, prod) => acc + parseFloat(prod.precio), 0)
+        .toFixed(2)}
     </p>
 
-    <form onSubmit={(e) => {
-      e.preventDefault();
-      alert("¡Compra realizada con éxito!");
-      setCarrito([]);
-      setActiveTab("ventas");
-    }}>
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault();
+
+           const nombre = e.target[0].value;
+           const direccion = e.target[1].value;
+         if (contieneMalasPalabras(nombre) || contieneMalasPalabras(direccion)) {
+         alert("Por favor, evitá usar palabras ofensivas o inapropiadas.");
+           return;
+          }
+        try {
+          const token = localStorage.getItem("token");
+
+          const productos = carrito.map((prod) => ({
+            id: prod.id,
+            cantidad: prod.cantidad || 1, // asumimos 1 si no tiene campo cantidad
+          }));
+
+          await axios.post(
+            "https://gestionproducto.alwaysdata.net/api.php?accion=confirmar_compra",
+            { productos },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+         await fetchProductos();
+          alert("¡Compra realizada con éxito!");
+          setCarrito([]);
+          setActiveTab("ventas");
+        } catch (error) {
+          console.error("Error al confirmar compra:", error);
+          alert("Hubo un problema al confirmar la compra.");
+        }
+      }}
+    >
       <div className="form-group">
         <label>Nombre completo:</label>
         <input type="text" required />
@@ -391,8 +524,16 @@ const HomeScreen = () => {
         </select>
       </div>
 
-      <button type="submit" className="btn-finalizar">Finalizar Compra</button>
-      <button type="button" className="btn-volver" onClick={() => setActiveTab("carrito")}>Volver al Carrito</button>
+      <button type="submit" className="btn-finalizar">
+        Finalizar Compra
+      </button>
+      <button
+        type="button"
+        className="btn-volver"
+        onClick={() => setActiveTab("carrito")}
+      >
+        Volver al Carrito
+      </button>
     </form>
   </div>
 )}

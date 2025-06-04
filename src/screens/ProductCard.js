@@ -13,8 +13,9 @@ const ProductCard = ({
         {item.nombre} - ${item.precio}
       </h3>
       {item.descripcion && (
-        <p className="product-desc">{item.descripcion}</p>
+        <p className="product-desc">{item.descripcion}</p> 
       )}
+      <p className="product-stock">Stock: {item.stock}</p>
       <div className="product-actions">
         {!modoVenta && (
           <>
@@ -24,6 +25,7 @@ const ProductCard = ({
                 setForm({
                   nombre: item.nombre,
                   precio: item.precio.toString(),
+                  stock: item.stock.toString(),
                   descripcion: item.descripcion,
                 });
                 setEditandoId(item.id);

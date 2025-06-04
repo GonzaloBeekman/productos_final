@@ -85,51 +85,55 @@ export default function AuthScreen() {
     }
   };
 
-  // Manejar éxito de Google (existente)
-  const handleGoogleSuccess = async (credentialResponse) => {
-    setLoading(true);
-    try {
-      const decoded = jwtDecode(credentialResponse.credential);
-      
-      localStorage.setItem("user", JSON.stringify({
+const handleGoogleSuccess = async (credentialResponse) => {
+  setLoading(true);
+  try {
+    const decoded = jwtDecode(credentialResponse.credential);
+    
+    // Petición al backend para login con Google
+    const backendResponse = await fetch('https://gestionproducto.alwaysdata.net/auth.php?accion=google-auth', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'google-auth',
         email: decoded.email,
         name: decoded.name,
         googleId: decoded.sub
-      }));
+      })
+    });
 
-      const backendResponse = await fetch('https://gestionproducto.alwaysdata.net/auth.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'google-auth',
-          email: decoded.email,
-          name: decoded.name,
-          googleId: decoded.sub
-        })
-      });
+    const data = await backendResponse.json();
 
-      if (!backendResponse.ok) {
-        throw new Error("Error en el servidor");
-      }
-
-      navigate('/');
-
-    } catch (err) {
-      console.error('Error en login con Google:', err);
-      setError(err.message || "Error al iniciar sesión con Google");
-    } finally {
-      setLoading(false);
+    if (!backendResponse.ok) {
+      throw new Error(data.message || "Error en el servidor");
     }
-  };
 
-  const handleGoogleError = () => {
+    // Guardar la respuesta del backend (incluyendo token y permiso)
+    localStorage.setItem("user", JSON.stringify({
+      email: data.email || decoded.email,
+      name: data.name || decoded.name,
+      token: data.token,        // <-- importante para las futuras peticiones
+      permiso: data.permiso,    // <-- si existe
+      googleId: decoded.sub
+    }));
+
+    navigate('/');
+
+  } catch (err) {
+    console.error('Error en login con Google:', err);
+    setError(err.message || "Error al iniciar sesión con Google");
+  } finally {
+    setLoading(false);
+  }
+};
+const handleGoogleError = () => {
     setError("Error al iniciar sesión con Google");
   };
-
   return (
     <div className="auth-container">
+      <h1 className="titulo">Bienvenidos a Gestion de Producto</h1>
       <div className="auth-card">
         <h2>{isLogin ? 'Iniciar Sesión' : 'Registrarse'}</h2>
         
