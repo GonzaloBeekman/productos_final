@@ -3,11 +3,13 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import ProductCard from './ProductCard';
 import './HomeScreen.css';
-
+import AlertMessage from './AlertMessage';
+import Swal from 'sweetalert2';
 const API_URL = process.env.REACT_APP_API_URL || 'https://gestionproducto.alwaysdata.net/api.php';
 
 const HomeScreen = () => {
   const [productos, setProductos] = useState([]);
+  const [alert, setAlert] = useState(null);
   const [form, setForm] = useState({
     nombre: '',
     precio: '',
@@ -70,6 +72,7 @@ const HomeScreen = () => {
   };
 
   useEffect(() => {
+
     const loadInitialData = () => {
       try {
         const userData = localStorage.getItem('user');
@@ -102,7 +105,8 @@ const HomeScreen = () => {
   const crearProducto = async () => {
     const errorValidacion = validarFormulario();
     if (errorValidacion) {
-      alert(errorValidacion);
+    setAlert({ message: errorValidacion, type: 'error' });
+    setTimeout(() => setAlert(null), 3000);
       return;
     }
 
@@ -126,10 +130,12 @@ const HomeScreen = () => {
 
       await fetchProductos();
       limpiarCampos();
-      alert('Producto creado correctamente');
+      setAlert({ message: 'Producto creado correctamente', type: 'success' });
+      setTimeout(() => setAlert(null), 3000);
     } catch (error) {
       console.error('Error al crear producto:', error);
-      alert(error.message || 'No se pudo crear el producto');
+      setAlert({ message: error.message || 'No se pudo crear el producto', type: 'error' });
+      setTimeout(() => setAlert(null), 3000);
     }
   };
 
@@ -152,17 +158,26 @@ const HomeScreen = () => {
       await fetchProductos();
       limpiarCampos();
       setEditandoId(null);
-      alert('Producto actualizado correctamente');
+      setAlert({ message: 'Producto actualizado correctamente', type: 'success' });
+      setTimeout(() => setAlert(null), 3000);
     } catch (error) {
       console.error('Error al actualizar producto:', error);
-      alert('No se pudo actualizar el producto');
+      setAlert({message: 'No se pudo actualizar el producto'});
+      setTimeout(() => setAlert(null), 3000);
     }
   };
 
   const eliminarProducto = async (id) => {
-    if (!window.confirm('¿Estás seguro de eliminar este producto?')) {
-      return;
-    }
+  const result = await Swal.fire({
+    title: '¿Estás seguro?',
+    text: 'Esta acción no se puede deshacer',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (!result.isConfirmed) return;
 
     try {
       const token = getAuthToken();
@@ -175,10 +190,12 @@ const HomeScreen = () => {
       });
 
       await fetchProductos();
-      alert('Producto eliminado correctamente');
+      setAlert({message: 'Producto eliminado correctamente',type: 'success'});
+      setTimeout(() => setAlert(null), 3000);
     } catch (error) {
       console.error('Error al eliminar producto:', error);
-      alert('No se pudo eliminar el producto');
+      setAlert({message:'No se pudo eliminar el producto'});
+      setTimeout(() => setAlert(null), 3000);
     }
   };
 
@@ -211,10 +228,12 @@ const HomeScreen = () => {
     } else {
       // Agregar nuevo con cantidad 1
       setCarrito(prev => [...prev, {...producto, cantidad: 1}]);
-      alert(`"${producto.nombre}" agregado al carrito.`);
+      setAlert({message:`"${producto.nombre}" agregado al carrito.`, type: 'success'});
+      setTimeout(() => setAlert(null), 3000);
     }
   } else {
-    alert("Stock agotado. Este producto no tiene stock disponible.");
+    setAlert({message:"Stock agotado. Este producto no tiene stock disponible."});
+    setTimeout(() => setAlert(null), 3000);
   }
 };
 const obtenerProductos = async () => {
@@ -304,7 +323,7 @@ return (
           </div>
         </div>
       </div>
-  
+      {alert && <AlertMessage message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
       {activeTab === "administracion" && permiso == 1 && (
         <>
           <button
@@ -472,7 +491,8 @@ return (
            const nombre = e.target[0].value;
            const direccion = e.target[1].value;
          if (contieneMalasPalabras(nombre) || contieneMalasPalabras(direccion)) {
-         alert("Por favor, evitá usar palabras ofensivas o inapropiadas.");
+         setAlert({message:"Por favor, evitá usar palabras ofensivas o inapropiadas."});
+         setTimeout(() => setAlert(null), 3000);
            return;
           }
         try {
@@ -494,12 +514,14 @@ return (
             }
           );
          await fetchProductos();
-          alert("¡Compra realizada con éxito!");
+          setAlert({message:"¡Compra realizada con éxito!"});
+          setTimeout(() => setAlert(null), 3000);
           setCarrito([]);
           setActiveTab("ventas");
         } catch (error) {
           console.error("Error al confirmar compra:", error);
-          alert("Hubo un problema al confirmar la compra.");
+          setAlert({message:"Hubo un problema al confirmar la compra."});
+          setTimeout(() => setAlert(null), 3000);
         }
       }}
     >
